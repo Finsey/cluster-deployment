@@ -1,0 +1,61 @@
+name: Deploy Cluster
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  deploy:
+    runs-on: [ self-hosted, home-runner ]
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Create k8s KinD Cluster
+      uses: engineerd/setup-kind@v0.6.0
+      with:
+        version: v0.24.0
+        config: kind-config.yaml
+      id: kind
+
+    - name: Install `kubectl`
+      uses: azure/setup-kubectl@v4
+      with:
+        version: latest
+
+    - name: Install `Helm`
+      uses: azure/setup-helm@v4
+      with:
+        version: latest
+
+    - name: Create kind cluster
+      run: kind create cluster --config=kind-config.yaml
+
+    # - name: Install MetalLB
+    #   run: |
+    #     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
+    #     kubectl apply -f charts/metallb-values.yaml
+
+    # - name: Install Ingress‑NGINX
+    #   run: |
+    #     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    #     helm repo update
+    #     helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+    #       --namespace ingress-nginx --create-namespace \
+    #       -f charts/ingress-values.yaml
+
+    # - name: Install Longhorn
+    #   run: |
+    #     helm repo add longhorn https://charts.longhorn.io
+    #     helm repo update
+    #     helm upgrade --install longhorn longhorn/longhorn \
+    #       --namespace longhorn-system --create-namespace \
+    #       -f charts/longhorn-values.yaml
+
+    # - name: Install Vault
+    #   run: |
+    #     helm repo add hashicorp https://helm.releases.hashicorp.com
+    #     helm repo update
+    #     helm upgrade --install vault hashicorp/vault \
+    #       --namespace vault --create-namespace \
+    #       -f charts/vault-values.yaml
