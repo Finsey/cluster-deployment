@@ -1,7 +1,8 @@
 # cluster-deployment
 Deploy a KinD cluster
 
-# GitHub Runner
+## Deployment
+### Local: GitHub Runner
 Run the `docker build` commands to build the GitHub runner before running it:
 
 ```

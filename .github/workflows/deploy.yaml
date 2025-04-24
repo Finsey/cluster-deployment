@@ -1,61 +1,39 @@
-name: Deploy Cluster
+name: KinD Terraform CI
 
 on:
   push:
     branches: [ develop ]
 
 jobs:
-  deploy:
-    runs-on: [ self-hosted, home-runner ]
+  terraform:
+    runs-on: [self-hosted]
+
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Create k8s KinD Cluster
-      uses: engineerd/setup-kind@v0.6.0
-      with:
-        version: v0.24.0
-        config: kind-config.yaml
-      id: kind
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
 
-    - name: Install `kubectl`
-      uses: azure/setup-kubectl@v4
-      with:
-        version: latest
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Install `Helm`
-      uses: azure/setup-helm@v4
-      with:
-        version: latest
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
 
-    - name: Create kind cluster
-      run: kind create cluster --config=kind-config.yaml
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
 
-    # - name: Install MetalLB
-    #   run: |
-    #     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
-    #     kubectl apply -f charts/metallb-values.yaml
-
-    # - name: Install Ingress‑NGINX
-    #   run: |
-    #     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-    #     helm repo update
-    #     helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-    #       --namespace ingress-nginx --create-namespace \
-    #       -f charts/ingress-values.yaml
-
-    # - name: Install Longhorn
-    #   run: |
-    #     helm repo add longhorn https://charts.longhorn.io
-    #     helm repo update
-    #     helm upgrade --install longhorn longhorn/longhorn \
-    #       --namespace longhorn-system --create-namespace \
-    #       -f charts/longhorn-values.yaml
-
-    # - name: Install Vault
-    #   run: |
-    #     helm repo add hashicorp https://helm.releases.hashicorp.com
-    #     helm repo update
-    #     helm upgrade --install vault hashicorp/vault \
-    #       --namespace vault --create-namespace \
-    #       -f charts/vault-values.yaml
+  # Optional: destroy after tests
+  cleanup:
+    if: always()
+    runs-on: [self-hosted]
+    needs: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+      - run: terraform destroy -auto-approve
