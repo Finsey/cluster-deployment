@@ -1,0 +1,11 @@
+- hosts: local
+  gather_facts: false
+  collections:
+    - community.kubernetes
+    - kubernetes.core
+  
+  vars:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+  
+  roles:
+    - role: helm-charts

@@ -14,9 +14,8 @@ resource "kind_cluster" "default" {
         
         dynamic "node" {
             for_each = range(var.worker_count)
-            iterator
             content {
-                role = "worker-${count.index}"
+                role = "worker"
             }
         }
     }
