@@ -12,6 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Deploy Cluster
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -25,15 +26,3 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-
-  # Optional: destroy after tests
-  cleanup:
-    if: always()
-    runs-on: [self-hosted]
-    needs: terraform
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-      - run: terraform destroy -auto-approve
