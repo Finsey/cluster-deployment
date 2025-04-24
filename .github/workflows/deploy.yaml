@@ -10,9 +10,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          persistent-credentials: false
+        uses: actions/checkout@v4
 
       # Deploy Cluster
       - name: Setup Terraform
