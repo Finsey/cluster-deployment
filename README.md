@@ -2,20 +2,17 @@
 Deploy a KinD cluster
 
 ## Deployment
-### Local: GitHub Runner
-Run the `docker build` commands to build the GitHub runner before running it:
+### Terraform
+
+### Ansible
+#### Prerequisites
+- `python3`
+- `pip`
+- `kubernetes` package for Python
+
+
+The `kubernetes.core` Ansible collection is required. This can be installed via:
 
 ```
-# Build the GitHub runner image
-docker build -t github-runner:latest .
-
-# Run the GitHub runner container
-docker run -d --name github-runner \
-  -e 
-```
-
-install collections
 ansible-galaxy collection install -r collections.yaml
-
-install kubernetes
-pip install kubernetes
+```

@@ -10,7 +10,7 @@
 - name: Install release ({{ item.name }})
   community.kubernetes.helm:
     name: "{{ item.name }}"
-    chart_ref: "{{ item.name }}"
+    chart_ref: "{{ item.chart_ref }}"
     chart_version: "{{ item.version }}"
     release_namespace: "{{ item.namespace }}"
     create_namespace: false

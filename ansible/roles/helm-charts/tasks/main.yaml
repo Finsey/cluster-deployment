@@ -51,9 +51,13 @@
     - action is defined
     - '"delete-issuer" in action'
 
-- name: Include tasks to execute requested action
+- name: Charts
   ansible.builtin.include_tasks:
     file: "{{ deploy_action | lower }}.yaml"
   loop: "{{ helm_charts }}"
   loop_control:
     loop_var: item
+
+- name: MetalLB configurations
+  ansible.builtin.include_tasks:
+    file: "metallb.yaml"
