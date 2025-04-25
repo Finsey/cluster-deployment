@@ -1,0 +1,39 @@
+---
+- name: Uninstall release via Helm
+  ansible.builtin.shell:
+    set -o errexit
+    set -o pipefail
+    set -o nounset
+
+    helm uninstall {{ release_name }} --namespace {{ namespace }}
+
+    exit 0
+  run_once: true
+  delegate_to: 127.0.0.1
+  changed_when: false
+  args:
+    executable: "/bin/bash"
+
+- name: Remove repository via Helm
+  ansible.builtin.shell:
+    set -o errexit
+    set -o pipefail
+    set -o nounset
+
+    helm repo remove {{ item.name }}
+
+    exit 0
+  run_once: true
+  delegate_to: 127.0.0.1
+  changed_when: false
+  args:
+    executable: "/bin/bash"
+
+- name: Delete namespace
+  kubernetes.core.k8s:
+    name: "{{ item.namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: absent
+  delegate_to: 127.0.0.1
+  run_once: true

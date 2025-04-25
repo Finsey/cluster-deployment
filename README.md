@@ -13,3 +13,9 @@ docker build -t github-runner:latest .
 docker run -d --name github-runner \
   -e 
 ```
+
+install collections
+ansible-galaxy collection install -r collections.yaml
+
+install kubernetes
+pip install kubernetes

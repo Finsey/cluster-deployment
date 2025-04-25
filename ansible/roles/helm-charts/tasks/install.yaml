@@ -1,0 +1,30 @@
+---
+- name: Include prerequisites
+  ansible.builtin.include_tasks:
+    file: prerequisites.yaml
+
+- name: Create values
+  ansible.builtin.set_fact:
+    helm_values: "{{ lookup('file', 'roles/helm-charts/files/values/' + item.name + '.yaml') | from_yaml }}"
+
+- name: Install release ({{ item.name }})
+  community.kubernetes.helm:
+    name: "{{ item.name }}"
+    chart_ref: "{{ item.name }}"
+    chart_version: "{{ item.version }}"
+    release_namespace: "{{ item.namespace }}"
+    create_namespace: false
+    chart_repo_url: "{{ item.repo_url }}"
+    values: "{{ helm_values }}"
+
+# - name: Waiting until cert-manager-webhooks pod is ready
+#   kubernetes.core.k8s_info:
+#     api_version: apps/v1
+#     kind: Deployment
+#     namespace: "{{ cert_manager_namespace }}"
+#     label_selectors:
+#       - app=webhook
+#   register: cert_manager_webhook_deployment_status
+#   until: (cert_manager_webhook_deployment_status.resources[0].status.readyReplicas | default(0) | int) >= 1
+#   retries: 30
+#   delay: 15
