@@ -4,7 +4,7 @@ metadata:
   name: static-pool
   namespace: metallb-system
 spec:
-  ipAddressPools:
+  addresses:
   - 172.17.0.100-172.17.0.130
 ---
 apiVersion: metallb.io/v1beta1
@@ -13,7 +13,7 @@ metadata:
   name: dynamic-pool
   namespace: metallb-system
 spec:
-  ipAddressPools:
+  addresses:
   - 172.17.0.131-172.17.0.161
 ---
 apiVersion: metallb.io/v1beta1

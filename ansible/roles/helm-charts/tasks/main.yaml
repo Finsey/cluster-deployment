@@ -51,6 +51,10 @@
     - action is defined
     - '"delete-issuer" in action'
 
+# - name: Install CNI
+#   ansible.builtin.include_tasks:
+#     file: "cni.yaml"
+
 - name: Charts
   ansible.builtin.include_tasks:
     file: "{{ deploy_action | lower }}.yaml"
