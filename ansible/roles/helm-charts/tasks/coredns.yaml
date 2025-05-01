@@ -1,0 +1,5 @@
+- name: Create new zone for *.mcginn.home
+  kubernetes.core.k8s:
+    state: present
+    # src can be relative to the role's files/ directory
+    src: "{{ role_path }}/files/coredns/coredns-custom.yaml"
