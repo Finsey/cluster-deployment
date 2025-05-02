@@ -62,6 +62,10 @@
   loop_control:
     loop_var: item
 
+- name: CoreDNS configurations
+  ansible.builtin.include_tasks:
+    file: "coredns.yaml"
+
 - name: MetalLB configurations
   ansible.builtin.include_tasks:
     file: "metallb.yaml"
