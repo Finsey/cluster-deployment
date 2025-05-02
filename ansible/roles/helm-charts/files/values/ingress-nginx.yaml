@@ -1086,6 +1086,7 @@ defaultBackend:
   ##
   nodeSelector:
     kubernetes.io/os: linux
+    node-role.kubernetes.io: control-plane
   # -- Annotations to be added to default backend pods
   ##
   podAnnotations: {}
