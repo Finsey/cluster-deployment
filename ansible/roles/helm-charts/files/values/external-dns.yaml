@@ -864,11 +864,13 @@ txtEncrypt:
   secretName: ""
 ## @param extraArgs Extra arguments to be passed to external-dns
 ##
-extraArgs: {}
-##extraArgs:
-##  rfc2136-zone:
-##    - extra-zone1.com
-##    - extra-zone2.com
+# extraArgs: {}
+extraArgs:
+  - --coredns-server=127.0.0.1:53
+  - --zone=mcginn.home
+  - --source=ingress
+  - --domain-filter=mcginn.home
+  - --policy=sync
 ## @param extraEnvVars An array to add extra env vars
 ##
 extraEnvVars: []
