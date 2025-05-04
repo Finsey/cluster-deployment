@@ -22,3 +22,23 @@ data:
       # Forward any other queries upstream
       forward . /etc/resolv.conf
     }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-zone-file
+  namespace: kube-system
+data:
+  # Define a new server for mcginn.home on port 53
+  db.mcginn.home: |
+    $ORIGIN mcginn.home.
+    @       3600 IN SOA  ns.mcginn.home. admin.mcginn.home. (
+                    1 ; serial
+                    3600 ; refresh
+                    600  ; retry
+                    86400 ; expire
+                    38400 ; minimum
+    )
+            3600 IN NS   ns.mcginn.home.
+    ns      3600 IN A    <CoreDNS-LB-IP>
+    *.mcginn.home. 3600 IN A  <Ingress-LB-IP>

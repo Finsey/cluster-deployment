@@ -5,7 +5,8 @@
     - kubernetes.core
   
   vars:
-    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
-  
+    # kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
+    kubeconfig: ../terraform/home-cluster-config
+
   roles:
     - role: helm-charts

@@ -53,7 +53,7 @@ prometheus:
 service:
 # clusterIP: ""
 # clusterIPs: []
-# loadBalancerIP: ""
+# loadBalancerIP: "192.168.1.201"
 # loadBalancerClass: ""
 # externalIPs: []
 # externalTrafficPolicy: ""
@@ -65,6 +65,8 @@ service:
   annotations: {}
   # Pod selector
   selector: {}
+  # loadBalancerIP
+  loadBalancerIP: "192.168.1.201"
 
 serviceAccount:
   create: false
@@ -160,7 +162,9 @@ servers:
 # extraConfig:
 #   import:
 #     parameters: /opt/coredns/*.conf
-extraConfig: {}
+extraConfig:
+  import:
+    parameters: /opt/coredns/*.conf
 
 # To use the livenessProbe, the health plugin needs to be enabled in CoreDNS' server config
 livenessProbe:
@@ -245,13 +249,19 @@ extraContainers: []
 #   image: some-image:latest
 #   imagePullPolicy: Always
 # optional array of extra volumes to create
-extraVolumes: []
-# - name: some-volume-name
-#   emptyDir: {}
+extraVolumes:
+- name: config
+  configMap:
+    name: coredns-custom
+- name: coredns-zone-file
+  configMap:
+    name: coredns-zone-file
 # optional array of mount points for extraVolumes
-extraVolumeMounts: []
-# - name: some-volume-name
-#   mountPath: /etc/wherever
+extraVolumeMounts:
+- name: config
+  mountPath: /etc/coredns
+- name: coredns-zone-file
+  mountPath: /etc/coredns
 
 # optional array of secrets to mount inside coredns container
 # possible usecase: need for secure connection with etcd backend
