@@ -249,11 +249,10 @@ controller:
   # -- Node tolerations for server scheduling to nodes with taints
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   ##
-  tolerations: []
-  #  - key: "key"
-  #    operator: "Equal|Exists"
-  #    value: "value"
-  #    effect: "NoSchedule|PreferNoSchedule|NoExecute(1.6 only)"
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
 
   # -- Affinity and anti-affinity rules for server scheduling to nodes
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
@@ -333,6 +332,7 @@ controller:
   ##
   nodeSelector:
     kubernetes.io/os: linux
+    kubernetes.io/hostname: home-cluster-control-plane
   ## Liveness and readiness probe values
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
   ##
@@ -492,7 +492,7 @@ controller:
     labels: {}
     # -- Type of the external controller service.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-    type: NodePort
+    type: LoadBalancer
     # -- Pre-defined cluster internal IP address of the external controller service. Take care of collisions with existing services.
     # This value is immutable. Set once, it can not be changed without deleting and re-creating the service.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address
@@ -502,7 +502,7 @@ controller:
     externalIPs: []
     # -- Deprecated: Pre-defined IP address of the external controller service. Used by cloud providers to connect the resulting load balancer service to a pre-existing static IP.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer
-    loadBalancerIP: ""
+    loadBalancerIP: "172.18.255.200"
     # -- Restrict access to the external controller service. Values must be CIDRs. Allows any source address by default.
     loadBalancerSourceRanges: []
     # -- Load balancer class of the external controller service. Used by cloud providers to select a load balancer implementation other than the cloud provider default.
@@ -947,7 +947,7 @@ revisionHistoryLimit: 10
 ##
 defaultBackend:
   ##
-  enabled: false
+  enabled: true
   name: defaultbackend
   image:
     # registry: registry.k8s.io
