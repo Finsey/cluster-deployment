@@ -1,5 +1,11 @@
 ---
 helm_charts:
+  - name: monitoring
+    version: "71.2.0"
+    repo_url: "https://prometheus-community.github.io/helm-charts"
+    repo_name: "prometheus-community"
+    chart_ref: "kube-prometheus-stack"
+    namespace: "monitoring"
   - name: metallb
     version: "0.14.9"
     repo_url: "https://metallb.github.io/metallb"
@@ -43,4 +49,3 @@ helm_charts:
     repo_name: "hashicorp"
     chart_ref: "vault"
     namespace: "vault"
-  # - name: kube-prometheus-stack
