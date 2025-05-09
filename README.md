@@ -1,14 +1,19 @@
 # cluster-deployment
-Deploy a KinD cluster
+Deploy a home cluster with full infrastructure for a smart home.
 
-# GitHub Runner
-Run the `docker build` commands to build the GitHub runner before running it:
+## Deployment
+### Terraform
+Initialise
+
+### Ansible
+#### Prerequisites
+- `python3`
+- `pip`
+- `kubernetes` package for Python
+#### Installation
+
+The `kubernetes.core` Ansible collection is required. This can be installed via:
 
 ```
-# Build the GitHub runner image
-docker build -t github-runner:latest .
-
-# Run the GitHub runner container
-docker run -d --name github-runner \
-  -e 
+ansible-galaxy collection install -r collections.yaml
 ```
