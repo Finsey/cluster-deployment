@@ -53,7 +53,11 @@ controller:
     https: 443
   # -- Global configuration passed to the ConfigMap consumed by the controller. Values may contain Helm templates.
   # Ref.: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-  config: {}
+  config:
+    ssl-redirect: "true"
+    use-forwarded-headers: "true"
+    enable-vts-status: "false"
+
   # -- Annotations to be added to the controller config configuration configmap.
   configAnnotations: {}
   # -- Will add custom headers before sending traffic to backends according to https://github.com/kubernetes/ingress-nginx/tree/main/docs/examples/customization/custom-headers
@@ -130,7 +134,7 @@ controller:
     # -- If true, Ingresses without `ingressClassName` get assigned to this IngressClass on creation.
     # Ingress creation gets rejected if there are multiple default IngressClasses.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#default-ingress-class
-    default: false
+    default: true
     # -- Annotations to be added to the IngressClass resource.
     annotations: {}
     # -- Controller of the IngressClass. An Ingress Controller looks for IngressClasses it should reconcile by this value.
@@ -399,6 +403,10 @@ controller:
     requests:
       cpu: 100m
       memory: 90Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
   # Mutually exclusive with keda autoscaling
   autoscaling:
     enabled: false
@@ -514,7 +522,7 @@ controller:
 
     # -- External traffic policy of the external controller service. Set to "Local" to preserve source IP on providers supporting it.
     # Ref: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
-    externalTrafficPolicy: ""
+    externalTrafficPolicy: "Local"
     # -- Session affinity of the external controller service. Must be either "None" or "ClientIP" if set. Defaults to "None".
     # Ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity
     sessionAffinity: ""
@@ -865,7 +873,7 @@ controller:
       # externalTrafficPolicy: ""
       # nodePort: ""
     serviceMonitor:
-      enabled: false
+      enabled: true
       additionalLabels: {}
       # -- Annotations to be added to the ServiceMonitor.
       annotations: {}
