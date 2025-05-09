@@ -6,6 +6,8 @@ helm_charts:
     repo_name: "prometheus-community"
     chart_ref: "kube-prometheus-stack"
     namespace: "monitoring"
+  - name: keycloak
+  - name: openldap
   - name: metallb
     version: "0.14.9"
     repo_url: "https://metallb.github.io/metallb"
