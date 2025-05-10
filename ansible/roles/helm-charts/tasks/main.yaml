@@ -69,3 +69,11 @@
 - name: MetalLB configurations
   ansible.builtin.include_tasks:
     file: "metallb.yaml"
+
+- name: Vault configurations
+  ansible.builtin.include_tasks:
+    file: "vault.yaml"
+
+- name: Cert-Manager configurations
+  ansible.builtin.include_tasks:
+    file: "cert-manager.yaml"

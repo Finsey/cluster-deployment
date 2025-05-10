@@ -408,15 +408,15 @@ nodeSelector:
   kubernetes.io/os: linux
 
 # +docs:ignore
-ingressShim: {}
+ingressShim:
 
   # Optional default issuer to use for ingress resources.
   # +docs:property=ingressShim.defaultIssuerName
-  # defaultIssuerName: ""
+  defaultIssuerName: "default-ingress-issuer"
 
   # Optional default issuer kind to use for ingress resources.
   # +docs:property=ingressShim.defaultIssuerKind
-  # defaultIssuerKind: ""
+  defaultIssuerKind: "ClusterIssuer"
 
   # Optional default issuer group to use for ingress resources.
   # +docs:property=ingressShim.defaultIssuerGroup

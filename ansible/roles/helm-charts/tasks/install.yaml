@@ -16,6 +16,7 @@
     create_namespace: false
     chart_repo_url: "{{ item.repo_url }}"
     values: "{{ helm_values }}"
+    wait: true
 
 # - name: Waiting until cert-manager-webhooks pod is ready
 #   kubernetes.core.k8s_info:

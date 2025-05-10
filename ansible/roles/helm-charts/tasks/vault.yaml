@@ -1,0 +1,64 @@
+---
+- name: Wait for Vault pod to be Running
+  community.kubernetes.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ vault_ns }}"
+    label_selectors:
+      - "app.kubernetes.io/name=vault"
+  register: vault_pods
+  until: vault_pods.resources | selectattr('status.phase','equalto','Running') | list | length > 0
+  retries: 10
+  delay: 6
+  vars:
+    vault_ns: "vault"
+
+- name: Initialize Vault (once)
+  vars:
+    vault_addr: "http://vault.mcginn.home:8200"
+  ansible.builtin.shell: |
+    export VAULT_ADDR={{ vault_addr }}
+    vault operator init -format=json
+  register: init_output
+  failed_when: init_output.rc != 0 and 'already initialized' not in init_output.stderr
+
+- name: Store init keys in Kubernetes Secret
+  vars:
+    vault_ns: "vault"
+    init_secret_name: "vault-init"
+  community.kubernetes.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ init_secret_name }}"
+        namespace: "{{ vault_ns }}"
+      type: Opaque
+      stringData:
+        init.json: "{{ init_output.stdout }}"
+
+- name: Read init JSON from Secret
+  community.kubernetes.k8s_info:
+    api_version: v1
+    kind: Secret
+    namespace: "{{ vault_ns }}"
+    name: "{{ init_secret_name }}"
+  register: init_secret
+  vars:
+    vault_ns: "vault"
+    init_secret_name: "vault-init"
+
+- name: Unseal Vault with first 3 keys
+  vars:
+    init_data: "{{ init_secret.resources[0].data['init.json'] | b64decode | from_json }}"
+    vault_addr: "http://vault.mcginn.home:8200"      
+  loop: "{{ init_data.unseal_keys_b64[0:3] }}"
+  ansible.builtin.shell: |
+    export VAULT_ADDR={{ vault_addr }}
+    vault operator unseal {{ item }}
+  args:
+    executable: /bin/bash
+
+- name: Show Vault root token
+  debug:
+    msg: "Vault is unsealed. Root Token: {{ (init_secret.resources[0].data['init.json'] | b64decode | from_json).root_token }}"
