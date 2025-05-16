@@ -278,7 +278,9 @@ injector:
 
   # extraEnvironmentVars is a list of extra environment variables to set in the
   # injector deployment.
-  extraEnvironmentVars: {}
+  extraEnvironmentVars:
+    - name: VAULT_DEV_ROOT_TOKEN_ID
+      value: ""
     # KUBERNETES_SERVICE_HOST: kubernetes.default.svc
 
   # Affinity Settings for injector pods
@@ -569,10 +571,13 @@ server:
   # Used to define commands to run after the pod is ready.
   # This can be used to automate processes such as initialization
   # or boostrapping auth methods.
-  postStart: []
-  # - /bin/sh
-  # - -c
-  # - /vault/userconfig/myscript/run.sh
+  postStart:
+  - /bin/sh
+  - -c
+  - |
+    sleep 5
+    vault operator init -key-shares=1 -key-threshold=1 -format=json > /tmp/init.json
+    cat /tmp/init.json | jq -r '.unseal_keys_b64[]' | xargs -I{} vault operator unseal {}
 
   # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
   # used to include variables required for auto-unseal.
@@ -822,7 +827,7 @@ server:
   # use dev mode for anything other than experimenting.
   # See https://developer.hashicorp.com/vault/docs/concepts/dev-server to know more
   dev:
-    enabled: false
+    enabled: true
 
     # Set VAULT_DEV_ROOT_TOKEN_ID value
     devRootToken: "root"

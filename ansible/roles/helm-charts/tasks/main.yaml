@@ -70,10 +70,14 @@
   ansible.builtin.include_tasks:
     file: "metallb.yaml"
 
-- name: Vault configurations
-  ansible.builtin.include_tasks:
-    file: "vault.yaml"
+# - name: Vault configurations
+#   ansible.builtin.include_tasks:
+#     file: "vault.yaml"
 
 - name: Cert-Manager configurations
   ansible.builtin.include_tasks:
-    file: "cert-manager.yaml"
+    file: "../tasks/cert-manager/cert-manager.yaml"
+
+- name: Monitoring configurations
+  ansible.builtin.include_tasks:
+    file: "monitoring.yaml"

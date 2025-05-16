@@ -45,6 +45,22 @@ I then launched WSL2 (Ubuntu) to run the Ansible automation procedure.
 - `pip`
 - `kubernetes` package for Python
 
+#### Manual Steps
+If you do not have a Root CA available, begin by creating a private key and a self-signed certificate that serves as your Root CA. For example, using OpenSSL:
+
+```
+# Generate a 4096-bit RSA private key
+openssl genrsa -out rootCA.key 4096
+
+# Generate a self-signed certificate valid for 20 years
+openssl req -x509 -new -nodes -key rootCA.key \
+  -sha256 -days 7300 \
+  -subj "/C=UK/ST=State/L=City/O=Org/CN=MyRootCA" \
+  -our rootCA.crt
+```
+
+Store the private key in a secure location and distribute the CA certificate to clients/machines attempting to access services on your network.
+
 #### Installation
 
 The `kubernetes.core` Ansible collection is required. This can be installed via:

@@ -1,0 +1,15 @@
+- name: Issue a TLS Certificate for {{ cert_name }}.mcginn.home
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: "{{ cert_name }}"
+        namespace: "{{ namespace }}"
+      spec:
+        dnsNames: "{{ dns_names }}"
+        secretName: "{{ secret_name }}"
+        issuerRef:
+          name: "{{ issuer_name }}"
+          kind: ClusterIssuer

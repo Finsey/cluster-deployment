@@ -2,3 +2,5 @@ actions-runner
 .terraform*
 terraform.tfstate*
 home-cluster-config
+*.crt
+*.key

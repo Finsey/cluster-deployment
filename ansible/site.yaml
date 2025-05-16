@@ -7,6 +7,8 @@
   vars:
     # kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
     kubeconfig: ../terraform/home-cluster-config
+    rca_key: ../ansible/roles/helm-charts/files/cert-manager/rca/rootCA.crt
+    rca_crt: ../ansible/roles/helm-charts/files/cert-manager/rca/rootCA.key
 
   roles:
     - role: helm-charts
