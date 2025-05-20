@@ -1,14 +1,5 @@
 ---
-- name: Read and base64-encode root certificate and key
-  tags:
-    - pre-install
-  set_fact:
-    rca_crt_b64: "{{ lookup('file', rca_crt) }}"
-    rca_key_b64: "{{ lookup('file', rca_key) }}"
-
 - name: Store root certificate and private key as Kubernetes secret
-  tags:
-    - post-install
   kubernetes.core.k8s:
     state: present
     definition:
@@ -20,11 +11,9 @@
         namespace: cert-manager
       stringData:
         tls.crt: "{{ rca_crt_b64 }}"
-        tls.key: "{{ rca_crt_b64 }}"
+        tls.key: "{{ rca_key_b64 }}"
 
 - name: Create intermediate cluster issuer
-  tags:
-    - post-install
   vars:
     issuer_name: intermediate-ca-issuer
   kubernetes.core.k8s:
@@ -41,8 +30,6 @@
           # - "https.example.com"
 
 - name: Create intermediate certificate
-  tags:
-    - post-install
   kubernetes.core.k8s:
     state: present
     definition:
@@ -63,8 +50,6 @@
           kind: ClusterIssuer
 
 - name: Create intermediate domain cluster issuer
-  tags:
-    - post-install
   vars:
     issuer_name: domain-ca-issuer
   kubernetes.core.k8s:
@@ -82,8 +67,6 @@
 
 # Default certificate for TLS to terminate against
 - name: Create domain certificate
-  tags:
-    - post-install
   kubernetes.core.k8s:
     state: present
     definition:
@@ -91,7 +74,7 @@
       kind: Certificate
       metadata:
         name: domain-tls
-        namespace: default
+        namespace: cert-manager
       spec:
         dnsNames:
         - "*.mcginn.home"

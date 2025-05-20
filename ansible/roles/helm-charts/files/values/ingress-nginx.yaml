@@ -208,14 +208,14 @@ controller:
   maxmindLicenseKey: ""
   # -- Additional command line arguments to pass to Ingress-Nginx Controller
   # E.g. to specify the default SSL certificate you can use
-  extraArgs: {}
-  ## extraArgs:
-  ##   default-ssl-certificate: "<namespace>/<secret_name>"
+  # extraArgs: {}
+  extraArgs:
+    default-ssl-certificate: "cert-manager/domain-tls"
   ##   time-buckets: "0.005,0.01,0.025,0.05,0.1,0.25,0.5,1,2.5,5,10"
   ##   length-buckets: "10,20,30,40,50,60,70,80,90,100"
   ##   size-buckets: "10,100,1000,10000,100000,1e+06,1e+07"
 
-  # -- Additional environment variables to set
+  # -- Additional environment vment ariables to set
   extraEnvs: []
   # extraEnvs:
   #   - name: FOO
@@ -817,8 +817,11 @@ controller:
         enabled: false
       nodeSelector:
         kubernetes.io/os: linux
-      tolerations: []
-      # -- Labels to be added to patch job resources
+        kubernetes.io/hostname: home-cluster-control-plane
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
       labels: {}
       # -- Security context for secret creation & webhook patch pods
       securityContext: {}
@@ -1009,11 +1012,10 @@ defaultBackend:
   # -- Node tolerations for server scheduling to nodes with taints
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   ##
-  tolerations: []
-  #  - key: "key"
-  #    operator: "Equal|Exists"
-  #    value: "value"
-  #    effect: "NoSchedule|PreferNoSchedule|NoExecute(1.6 only)"
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
 
   # -- Affinity and anti-affinity rules for server scheduling to nodes
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
@@ -1094,7 +1096,7 @@ defaultBackend:
   ##
   nodeSelector:
     kubernetes.io/os: linux
-    node-role.kubernetes.io: control-plane
+    kubernetes.io/hostname: home-cluster-control-plane
   # -- Annotations to be added to default backend pods
   ##
   podAnnotations: {}

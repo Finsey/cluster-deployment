@@ -31,6 +31,7 @@ helm_charts:
     repo_name: "ingress-nginx"
     chart_ref: "ingress-nginx"
     namespace: "ingress-nginx"
+  - name: 
   # - name: external-dns
   #   version: "8.8.0"
   #   repo_url: "https://charts.bitnami.com/bitnami"

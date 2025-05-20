@@ -7,12 +7,14 @@
   ansible.builtin.set_fact:
     helm_values: "{{ lookup('file', 'roles/helm-charts/files/values/' + item.name + '.yaml') | from_yaml }}"
 
-- name: Apply pre-configurations ({{ item.name }})
-  ansible.builtin.include_tasks:
-    file: "../tasks/infra/{{ item.name }}.yaml"
-    apply:
-      tags:
-        - pre-install
+- block:
+  - name: Apply pre-configurations ({{ item.name }})
+    ansible.builtin.include_tasks:
+      file: "../tasks/infra/pre/{{ item.name }}.yaml"
+  rescue:
+    - name: Pre-install file missing, skipping
+      ansible.builtin.debug:
+        msg: "No pre-install task for {{ item.name }}, continuing."
 
 - name: Install release ({{ item.name }})
   community.kubernetes.helm:
@@ -25,9 +27,11 @@
     values: "{{ helm_values }}"
     wait: true
 
-- name: Apply post-configurations ({{ item.name }})
-  ansible.builtin.include_tasks:
-    file: "../tasks/infra/{{ item.name }}.yaml"
-    apply:
-      tags:
-        - post-install
+- block:
+  - name: Apply post-configurations ({{ item.name }})
+    ansible.builtin.include_tasks:
+      file: "../tasks/infra/post/{{ item.name }}.yaml"
+  rescue:
+    - name: Post-install file missing, skipping
+      ansible.builtin.debug:
+        msg: "No post-install task for {{ item.name }}, continuing."
