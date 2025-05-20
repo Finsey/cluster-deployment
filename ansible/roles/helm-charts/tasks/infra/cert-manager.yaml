@@ -3,8 +3,8 @@
   tags:
     - pre-install
   set_fact:
-    rca_crt_b64: "{{ lookup('file', rca_crt) | b64encode }}"
-    rca_key_b64: "{{ lookup('file', rca_key) | b64encode }}"
+    rca_crt_b64: "{{ lookup('file', rca_crt) }}"
+    rca_key_b64: "{{ lookup('file', rca_key) }}"
 
 - name: Store root certificate and private key as Kubernetes secret
   tags:
@@ -18,9 +18,9 @@
       metadata:
         name: root-ca
         namespace: cert-manager
-      data:
+      stringData:
         tls.crt: "{{ rca_crt_b64 }}"
-        tls.key: "{{ rca_key_b64 }}"
+        tls.key: "{{ rca_crt_b64 }}"
 
 - name: Create intermediate cluster issuer
   tags:
@@ -60,6 +60,7 @@
           size: 256
         issuerRef:
           name: intermediate-ca-issuer
+          kind: ClusterIssuer
 
 - name: Create intermediate domain cluster issuer
   tags:

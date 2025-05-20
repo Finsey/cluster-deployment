@@ -9,7 +9,7 @@
 
 - name: Apply pre-configurations ({{ item.name }})
   ansible.builtin.include_tasks:
-    file: "{{ item.name }}.yaml"
+    file: "../tasks/infra/{{ item.name }}.yaml"
     apply:
       tags:
         - pre-install
@@ -27,7 +27,7 @@
 
 - name: Apply post-configurations ({{ item.name }})
   ansible.builtin.include_tasks:
-    file: "{{ item.name }}.yaml"
+    file: "../tasks/infra/{{ item.name }}.yaml"
     apply:
       tags:
         - post-install
