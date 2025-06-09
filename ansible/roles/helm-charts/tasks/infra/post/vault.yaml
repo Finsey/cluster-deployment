@@ -1,64 +1,141 @@
 ---
-- name: Wait for Vault pod to be Running
-  community.kubernetes.k8s_info:
+- name: Wait until pods are 'Running'
+  kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
-    namespace: "{{ vault_ns }}"
+    namespace: vault
     label_selectors:
-      - "app.kubernetes.io/name=vault"
-  register: vault_pods
-  until: vault_pods.resources | selectattr('status.phase','equalto','Running') | list | length > 0
-  retries: 10
-  delay: 6
-  vars:
-    vault_ns: "vault"
+     - app.kubernetes.io/instance = vault
+  register: pod_list
+  until: pod_list|json_query('resources[*].status.phase')|unique == ["Running"]
 
-- name: Initialize Vault (once)
-  vars:
-    vault_addr: "http://vault.mcginn.home:8200"
-  ansible.builtin.shell: |
-    export VAULT_ADDR={{ vault_addr }}
-    vault operator init -format=json
-  register: init_output
-  failed_when: init_output.rc != 0 and 'already initialized' not in init_output.stderr
+- name: Initialise Vault
+  kubernetes.core.k8s_exec:
+    namespace: vault
+    pod: vault-0
+    command: vault operator init -format=json -key-shares=5 -key-threshold=3
+  register: vault_init
+  changed_when: "'keys' in vault_init.stdout"
+  run_once: true
 
-- name: Store init keys in Kubernetes Secret
-  vars:
-    vault_ns: "vault"
-    init_secret_name: "vault-init"
-  community.kubernetes.k8s:
+- name: Extract unseal keys list
+  set_fact:
+    unseal_keys: "{{ (vault_init.stdout | from_json).unseal_keys_b64 }}"
+
+- name: Build map of unseal_key_N → key value
+  set_fact:
+    vault_secret_data: >-
+      {{ vault_secret_data | default({}) 
+         | combine({ 'unseal_key_' ~ (idx | string): item }) }}
+  loop: "{{ unseal_keys }}"
+  loop_control:
+    index_var: idx
+
+- name: Add root token into the same map
+  set_fact:
+    vault_secret_data: "{{ vault_secret_data | combine({'root_token': (vault_init.stdout | from_json).root_token }) }}"
+
+- name: Create a single Kubernetes Secret containing all five unseal keys + root token
+  kubernetes.core.k8s:
+    state: present
+    namespace: vault
     definition:
       apiVersion: v1
       kind: Secret
       metadata:
-        name: "{{ init_secret_name }}"
-        namespace: "{{ vault_ns }}"
+        name: vault-init
       type: Opaque
-      stringData:
-        init.json: "{{ init_output.stdout }}"
+      stringData: "{{ vault_secret_data }}"
+  run_once: true
 
-- name: Read init JSON from Secret
-  community.kubernetes.k8s_info:
-    api_version: v1
-    kind: Secret
-    namespace: "{{ vault_ns }}"
-    name: "{{ init_secret_name }}"
-  register: init_secret
-  vars:
-    vault_ns: "vault"
-    init_secret_name: "vault-init"
+- name: Build list of Vault pod names
+  set_fact:
+    pod_names: "{{ pod_list.resources | map(attribute='metadata.name') | list }}"
 
-- name: Unseal Vault with first 3 keys
-  vars:
-    init_data: "{{ init_secret.resources[0].data['init.json'] | b64decode | from_json }}"
-    vault_addr: "http://vault.mcginn.home:8200"      
-  loop: "{{ init_data.unseal_keys_b64[0:3] }}"
-  ansible.builtin.shell: |
-    export VAULT_ADDR={{ vault_addr }}
-    vault operator unseal {{ item }}
+- name: Unseal each Vault pod
+  loop: "{{ pod_names }}"
+  loop_control:
+    loop_var: pod_name
+
+  block:
+
+    - name: Unseal pod “{{ pod_name }}” with each key
+      loop: "{{ unseal_keys }}"
+      loop_control:
+        loop_var: unseal_key
+
+      kubernetes.core.k8s_exec:
+        namespace: vault
+        pod: "{{ pod_name }}"
+        container: vault
+        command:
+          - vault
+          - operator
+          - unseal
+          - "{{ unseal_key }}"
+      register: unseal_step
+      retries: 3
+      delay: 3
+      until: unseal_step.rc == 0
+
+    - name: Wait until pod “{{ pod_name }}” is fully unsealed
+      kubernetes.core.k8s_exec:
+        namespace: vault
+        pod: "{{ pod_name }}"
+        container: vault
+        command:
+          - vault
+          - status
+          - -format=json
+      register: status_check
+      retries: 5
+      delay: 5
+      until: status_check.stdout is search('"sealed":false')
+
+    - name: Debug sealed state for “{{ pod_name }}”
+      debug:
+        msg: "Pod {{ pod_name }} sealed: {{ (status_check.stdout | from_json).sealed }}"
+
+- name: Verify each Vault pod is unsealed
+  loop: "{{ vault_pods.resources | map(attribute='metadata.name') | list }}"
+  loop_control:
+    label: "{{ item }}"
+  kubernetes.core.k8s_exec:
+    pod: "{{ item }}"
+    namespace: vault
+    command: vault status -format=json
   args:
     executable: /bin/bash
+  environment:
+    VAULT_ADDR: "http://{{ item }}.{{ vault_release_name }}.{{ vault_namespace }}.svc.cluster.local:8200"
+  register: status_results
 
-- name: Show Vault root token
+- name: Debug pod unseal/status results
   debug:
-    msg: "Vault is unsealed. Root Token: {{ (init_secret.resources[0].data['init.json'] | b64decode | from_json).root_token }}"
+    msg: |
+      Pod {{ item.invocation.module_args.environment.VAULT_ADDR }}:
+        unseal rc = {{ (unseal_results.results 
+                         | selectattr('item','equalto',item) 
+                         | first).rc }}
+        sealed = {{ ((status_results.results 
+                       | selectattr('item','equalto',item) 
+                       | first).stdout 
+                     | from_json).sealed }}
+  loop: "{{ vault_pods.resources | map(attribute='metadata.name') | list }}"
+
+- name: Get cluster HA status & leader
+  shell: |
+    vault status -format=json
+  args:
+    executable: /bin/bash
+  environment:
+    # pick any one pod, e.g. the 0th
+    VAULT_ADDR: "http://{{ vault_pods.resources[0].metadata.name }}.{{ vault_release_name }}.{{ vault_namespace }}.svc.cluster.local:8200"
+  register: vault_cluster_status
+  changed_when: false
+
+- name: Show HA leader info
+  debug:
+    msg: |
+      Leader: {{ (vault_cluster_status.stdout | from_json).ha_active_node_addr }}
+      Cluster size: {{ (vault_cluster_status.stdout | from_json).ha_cluster_size }}

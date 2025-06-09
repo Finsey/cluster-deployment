@@ -1285,10 +1285,10 @@ grafana:
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
     ##
-    tls:
-    - secretName: grafana-general-tls
-      hosts:
-      - grafana.mcginn.home
+    # tls:
+    # - secretName: grafana-general-tls
+    #   hosts:
+    #   - grafana.mcginn.home
 
   # # To make Grafana persistent (Using Statefulset)
   # #
@@ -1446,6 +1446,20 @@ grafana:
     #   targetLabel: nodename
     #   replacement: $1
     #   action: replace
+
+  ldap:
+    enabled: true
+    existingSecret: ""
+    config: |-
+      verbose_logging = true
+
+      [[servers]]
+      host = "ldap.mcginn.home"
+      port = 636
+      use_ssl = true
+      start_tls = false
+      ssl_skip_verify = false
+      bind_dn = "uid=%s,ou=users,dc=mcginn,dc=home"
 
 ## Flag to disable all the kubernetes component scrapers
 ##

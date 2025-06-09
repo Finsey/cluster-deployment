@@ -412,7 +412,7 @@ ingressShim:
 
   # Optional default issuer to use for ingress resources.
   # +docs:property=ingressShim.defaultIssuerName
-  defaultIssuerName: "default-ingress-issuer"
+  defaultIssuerName: "domain-ca-issuer"
 
   # Optional default issuer kind to use for ingress resources.
   # +docs:property=ingressShim.defaultIssuerKind
