@@ -4,3 +4,4 @@ terraform.tfstate*
 home-cluster-config
 *.crt
 *.key
+tmp

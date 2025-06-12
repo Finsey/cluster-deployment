@@ -9,6 +9,7 @@
     kubeconfig: ../terraform/home-cluster-config
     rca_key: ../ansible/roles/helm-charts/files/cert-manager/rca/rootCA.key
     rca_crt: ../ansible/roles/helm-charts/files/cert-manager/rca/rootCA.crt
+    unseal_dir_output: ../ansible/tmp/vault/keys
 
   roles:
     - role: helm-charts
