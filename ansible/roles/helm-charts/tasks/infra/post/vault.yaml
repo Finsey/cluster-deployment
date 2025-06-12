@@ -88,6 +88,7 @@
   retries: 10
   delay: 2
 
+# Replace by somehow receiving the health check thing
 - name: Verify each Vault pod is unsealed
   loop: "{{ vault_pods.resources | map(attribute='metadata.name') | list }}"
   loop_control:
@@ -131,3 +132,7 @@
     msg: |
       Leader: {{ (vault_cluster_status.stdout | from_json).ha_active_node_addr }}
       Cluster size: {{ (vault_cluster_status.stdout | from_json).ha_cluster_size }}
+
+# Installation of PKI things
+# Installation of other things
+# Production like seal and unseal
