@@ -49,6 +49,12 @@ helm_charts:
     repo_name: "openldap-stack-ha"
     chart_ref: "openldap-stack-ha"
     namespace: "authentication"
+  - name: home-assistant
+    version: "13.4.2"
+    repo_url: "https://k8s-at-home.com/charts/"
+    repo_name: "k8s-at-home"
+    chart_ref: "home-assistant"
+    namespace: "homeassistant"
   # - name: external-dns
   #   version: "8.8.0"
   #   repo_url: "https://charts.bitnami.com/bitnami"

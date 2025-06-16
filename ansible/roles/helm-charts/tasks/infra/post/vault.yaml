@@ -17,6 +17,21 @@
     state: directory
   delegate_to: localhost
 
+- name: Verify whether Vault has been initialised
+  kubernetes.core.k8s_exec:
+    namespace: vault
+    pod: vault-0
+    command: vault status -format=json
+  register: vault_status_raw
+
+- name: Parse Vault status JSON string to dictionary
+  set_fact:
+    vault_status: "{{ vault_status | from_json }}"
+
+- name: Transfer JSON to formatted list
+  set_fact:
+    vault_status_formatted: "{{ vault_status.results | json_query('[].{name: item, guestState: instance.guest.guestState}') }}"
+
 - name: Initialise Vault
   kubernetes.core.k8s_exec:
     namespace: vault
@@ -25,6 +40,7 @@
   register: vault_init
   changed_when: "'keys' in vault_init.stdout"
   run_once: true
+  when: vault_status.initialized == "false"
 
 - name: Extract unseal keys list
   set_fact:
@@ -42,19 +58,6 @@
     content: "{{ vault_init_parsed.root_token }}"
     dest: "{{ unseal_dir_output }}/rootkey"
   delegate_to: localhost
-
-# - name: Create a single Kubernetes Secret containing all five unseal keys + root token
-#   kubernetes.core.k8s:
-#     state: present
-#     namespace: vault
-#     definition:
-#       apiVersion: v1
-#       kind: Secret
-#       metadata:
-#         name: vault-init
-#       type: Opaque
-#       stringData: "{{ vault_secret_data }}"
-#   run_once: true
 
 - name: Build list of Vault pod names
   set_fact:
@@ -76,11 +79,6 @@
 - name: Display unseal data from file (debug)
   ansible.builtin.debug:
     msg: "{{ unseal_keys }}"
-
-# - name: Set fact unseal_keys from loaded file
-#   set_fact:
-#     unseal_keys: "{{ vault_data.unseal_keys_b64 }}"
-#   when: vault_data.unseal_keys_b64 is defined
 
 - name: Unseal first Vault pod with each unseal key
   kubernetes.core.k8s_exec:
